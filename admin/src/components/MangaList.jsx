@@ -41,10 +41,11 @@ const MangaList = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSuccess(null)
+      setError(null)
     }, 3000)
     
     return () => clearTimeout(timer)
-  }, [success])
+  }, [success, error])
 
 
   // Function to fetch manga data

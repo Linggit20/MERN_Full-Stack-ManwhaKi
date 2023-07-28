@@ -58,10 +58,10 @@ app.use("/api", chapterCollectionRouter)
 app.use("/api", userBookmarkRouter)
 app.use("/api", userChapterBookmarkRouter)
 
-app.listen(3001, async () => {
+app.listen(process.env.PORT, async () => {
   try {
     await connect()
-    console.log("Listening on port 3001")
+    console.log(`Listening on port ${process.env.PORT}`)
   } catch (err) {
     console.log(err)
   }

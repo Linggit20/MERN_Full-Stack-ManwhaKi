@@ -42,14 +42,22 @@ export const login = async (req, res) => {
     if (!isMatch) return res.status(401).json({ error: "Incorrect email or password" })
 
     const token = jwt.sign({ id: admin._id, role: admin.role }, process.env.JWT_ADMIN_KEY)
+    const auth = jwt.sign({ id: admin._id }, process.env.JWT_AUTH_KEY)
     
-    const { password: _, role, createdAt, updatedAt, resetToken, resetTokenExpires, __v, ...info } = admin._doc
+    const { password: _, _id, role, createdAt, updatedAt, resetToken, resetTokenExpires, __v, ...info } = admin._doc
     res.cookie("accessToken", token, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       expires: new Date(Date.now() + 3 * 60 * 60 * 1000), 
-    }).status(200).json(info)
+    })
+    res.cookie("auth", auth, {
+      secure: true,
+      sameSite: "none",
+      expires: new Date(Date.now() + 3 * 60 * 60 * 1000), 
+    })
+
+    res.status(200).json(info)
   } catch (err) {
     console.log(err)
     res.status(500).json({ error: "Something went wrong" })
@@ -60,11 +68,24 @@ export const login = async (req, res) => {
 
 // Logout
 export const logout = async (req, res) => {
-  res.clearCookie("accessToken", {
-    sameSite: "none",
-    secure: true,
-  }).status(200).send("Logged out successfully")
+  try {
+    res.clearCookie("accessToken", {
+      sameSite: "none",
+      secure: true,
+    })
+
+    res.clearCookie("auth", {
+      sameSite: "none",
+      secure: true,
+    })
+
+    res.status(200).send("Logged out successfully")
+  } catch (err) {
+    console.log(err)
+    res.status(500).send("Something went wrong during logout")
+  }
 }
+
 
 
 //  Find the account to reset password

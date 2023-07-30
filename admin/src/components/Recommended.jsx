@@ -90,7 +90,9 @@ const Recommended = () => {
                   </CardHeader>
                   <CardBody className="p-4">
                     <Typography variant="h5" color="blue-gray" className="mb-2 text-base">
-                      {manga.title}
+                      {manga.title.length > 28 ? 
+                        `${manga.title.slice(0, 28)}${manga.title.length > 28 ? "..." : ""}` 
+                        : manga.title}
                     </Typography>
                   </CardBody>
                 </Card>

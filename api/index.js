@@ -20,6 +20,8 @@ import mangaCollectionRouter from "./routes/client/mangaRoute.js"
 import chapterCollectionRouter from "./routes/client/chapterRoute.js"
 import userBookmarkRouter from "./routes/client/userBookmarkRoute.js"
 import userChapterBookmarkRouter from "./routes/client/userChapterBookmarkRoute.js"
+import featuredCollectionRouter from "./routes/client/featuredMangaRoute.js"
+import recommendCollectionRouter from "./routes/client/recommendedRoute.js"
 
 
 const app = express()
@@ -57,6 +59,8 @@ app.use("/api", mangaCollectionRouter)
 app.use("/api", chapterCollectionRouter)
 app.use("/api", userBookmarkRouter)
 app.use("/api", userChapterBookmarkRouter)
+app.use("/api", featuredCollectionRouter)
+app.use("/api", recommendCollectionRouter)
 
 app.listen(process.env.PORT, async () => {
   try {

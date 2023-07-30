@@ -13,8 +13,8 @@ const MangaList = () => {
   const [hasNextPage, setHasNextPage] = useState(null)
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
-  const [featured, setFeatured] = useState(JSON.parse(localStorage.getItem("featured")) || [])
-  const [recommended, setRecommended]  = useState(JSON.parse(localStorage.getItem("recommended")) || [])
+  const [featuredManga, setFeaturedManga] = useState([])
+  const [recommendedManga, setRecommendedManga] = useState([])
 
   // States for Dialog and Edit mode
   const [selectedManga, setSelectedManga]  = useState({})
@@ -37,7 +37,7 @@ const MangaList = () => {
 
   }
 
-  // Set succes to null
+  // Set succes &  error to null
   useEffect(() => {
     const timer = setTimeout(() => {
       setSuccess(null)
@@ -67,6 +67,39 @@ const MangaList = () => {
   }, [page, deleted, updated])
 
 
+  // Funtion to fetch FeaturedManga
+  useEffect(() => {
+    const getFeaturedManga = async () => {
+      try {
+        const res = await api.get("/featured/all")
+        const featuredMangaList = res.data.featuredMangaList.map((manga) => manga._id)
+        setFeaturedManga(featuredMangaList)
+      } catch (err) {
+        console.log(err)
+        setError(err.response.data.error)
+      }
+    }
+  
+    getFeaturedManga()
+  }, [featuredManga])
+
+  // Funtion to fetch RecommendedManga
+  useEffect(() => {
+    const getRecommendedManga = async () => {
+      try {
+        const res = await api.get("/recommend/all")
+        const recommendedManga = res.data.recommendedManga.map((manga) => manga._id)
+        setRecommendedManga(recommendedManga)
+      } catch (err) {
+        console.log(err)
+        setError(err.response.data.error)
+      }
+    }
+
+    getRecommendedManga()
+  }, [recommendedManga])
+
+
   // Function to delete manga
   const deleteManga = async (mangaId) => {
   setSuccess(false)
@@ -79,10 +112,6 @@ const MangaList = () => {
    }
   }
 
-  // Function to check if manga is in recommended
-  const isInRecommended = (mangaId) => {
-    return recommended.includes(mangaId)
-  }
 
   // Function add to recommended
   const addToRecommended = async (mangaId) => {
@@ -90,8 +119,6 @@ const MangaList = () => {
     try {
       const res = await api.post(`/add/recommend/${mangaId}`)
       setSuccess(res.data)
-      setRecommended((prevReceommend) => [...prevReceommend, mangaId])
-      localStorage.setItem("recommended", JSON.stringify([...recommended, mangaId]))
     } catch (err) {
       setError(err.response.data.error)
     }
@@ -102,31 +129,12 @@ const MangaList = () => {
     try {
       const res = await api.delete(`/remove/recommend/${mangaId}`)
       setSuccess(res.data)
-      setFeatured((prevReceommend) => prevReceommend.filter((id) => id !== mangaId))
-      localStorage.setItem(
-        "recommended",
-        JSON.stringify(recommended.filter((id) => id !== mangaId))
-      )
     } catch (err) {
       console.log(err)
       setError(err.response.data.error)
     }
   }
 
-  // Function to handle add or remove from recommended
-  const handleRecommendAction = (mangaId) => {
-    if (isInRecommended(mangaId)) {
-      removeToRecommended(mangaId)
-    } else {
-      addToRecommended(mangaId)
-    }
-  }
-
-
-  // Function to check if manga is in featured
-  const isInFeatured = (mangaId) => {
-    return featured.includes(mangaId)
-  }
 
   // Function add to featured
   const addToFeatured = async (mangaId) => {
@@ -134,8 +142,6 @@ const MangaList = () => {
     try {
       const res = await api.post(`/add/featured/${mangaId}`)
       setSuccess(res.data)
-      setFeatured((prevFeatured) => [...prevFeatured, mangaId])
-      localStorage.setItem("featured", JSON.stringify([...featured, mangaId]))
     } catch (err) {
       console.log(err)
       setError(err.response.data.error)
@@ -148,25 +154,12 @@ const MangaList = () => {
     try {
       const res = await api.delete(`/remove/featured/${mangaId}`)
       setSuccess(res.data)
-      setFeatured((prevFeatured) => prevFeatured.filter((id) => id !== mangaId))
-      localStorage.setItem(
-        "featured",
-        JSON.stringify(featured.filter((id) => id !== mangaId))
-      )
     } catch (err) {
       console.log(err)
       setError(err.response.data.error)
     }
   }
 
-  // Function to handle add or remove from featured
-  const handleFeaturedAction = (mangaId) => {
-    if (isInFeatured(mangaId)) {
-      removeFromFeatured(mangaId)
-    } else {
-      addToFeatured(mangaId)
-    }
-  }
 
   // Functions to navigate between pages
   const next = () => hasNextPage && setPage((prevState) => prevState + 1)
@@ -332,8 +325,16 @@ const MangaList = () => {
                         </span>
                       </MenuHandler>
                       <MenuList>
-                        <MenuItem onClick={() => handleRecommendAction(mangaItem._id)}>{isInRecommended(mangaItem._id) ? "Remove from recommended" : "Add to recommended"}</MenuItem>
-                        <MenuItem onClick={() => handleFeaturedAction(mangaItem._id)}>{isInFeatured(mangaItem._id) ? "Remove from Featured" : "Add to Featured"}</MenuItem>
+                        {featuredManga.includes(mangaItem._id) ? (
+                          <MenuItem onClick={() => removeFromFeatured(mangaItem._id)}>Remove from Featured</MenuItem>
+                        ) : (
+                          <MenuItem onClick={() => addToFeatured(mangaItem._id)}>Add to Featured</MenuItem>
+                        )}
+                        {recommendedManga.includes(mangaItem._id) ? (
+                          <MenuItem onClick={() => removeToRecommended(mangaItem._id)}>Remove from Recommend</MenuItem>
+                        ) : (
+                          <MenuItem onClick={() => addToRecommended(mangaItem._id)}>Add to Recommend</MenuItem>
+                        )}
                         <MenuItem onClick={() => (setEdit(true), handleOpen(mangaItem, "xxl"))}>Edit</MenuItem>
                         <MenuItem onClick={() => deleteManga(mangaItem._id)}>Delete</MenuItem>
                       </MenuList>

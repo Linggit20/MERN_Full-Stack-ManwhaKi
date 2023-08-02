@@ -13,6 +13,7 @@ import api from "../../lib/api";
 import Cookies from "js-cookie";
 
 const ResetPassword = () => {
+  usePageTitle("ManwhaKi - Reset Password")
   const location = useLocation()
   const queryParams = new URLSearchParams(location.search)
   const id = queryParams.get("id")
@@ -24,8 +25,9 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
-
-c
+  const handleCheckboxChange = (e) => {
+    setShowPassword(e.target.checked)
+  }
   
   const handleSubmit = async (e) => {
     e.preventDefault()

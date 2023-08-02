@@ -16,6 +16,14 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  resetToken: {
+    type: String,
+    default: null,
+  },
+  resetTokenExpires: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true })
 
 export default mongoose.model("User", userSchema)

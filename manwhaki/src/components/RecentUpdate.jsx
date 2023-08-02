@@ -4,8 +4,7 @@ import { formatDistanceToNow } from 'date-fns'
 import api from "../lib/api"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
-
-const RecentUpdate = () => {
+const RecentUpdate = ({ cookie }) => {
   const [activeTab, setActiveTab] = useState("all")
   const [manga,  setManga] = useState([])
   const [loading, setLoading] = useState(false)
@@ -17,6 +16,7 @@ const RecentUpdate = () => {
   const pagesParam = searchParams.get("page") || 1
   const [page, setPage] = useState(pagesParam)
 
+  
   useEffect(() => {
     const getRecentUpdate = async () => {
       setLoading(true)
@@ -34,22 +34,28 @@ const RecentUpdate = () => {
     getRecentUpdate()
   }, [pagesParam])
 
+
+  useEffect(() => {
+    const pagesParam = searchParams.get("page") || 1
+    setPage(pagesParam)
+  }, [searchParams])
+
+
   useEffect(() => {
     scrollToRecentUpdate()
   }, [page])
 
   const scrollToRecentUpdate = () => {
     if (recentUpdateRef.current) {
-      recentUpdateRef.current.scrollIntoView({ behavior: "smooth" });
+      recentUpdateRef.current.scrollIntoView({ behavior: "smooth" })
     }
   }
 
-
-    // Functions to navigate between pages
+  // Functions to navigate between pages
   const navigate = useNavigate()
   const next = () => {
     if (hasNextPage) {
-      setPage((prevPage) => prevPage  + 1)
+      setPage((prevPage) => prevPage + 1)
       const searchParams = new URLSearchParams(location.search)
       searchParams.set("page", String(page + 1))
       navigate({ search: searchParams.toString() })
@@ -63,12 +69,6 @@ const RecentUpdate = () => {
       searchParams.set("page", String(page - 1))
       navigate({ search: null })
     }
-  }
-
-  const handleSlug = (mangaSlug, chapterSlug) => {
-    const storedSlugs = JSON.parse(localStorage.getItem("selectedSlugs")) || {};
-    storedSlugs[mangaSlug] = chapterSlug;
-    localStorage.setItem("selectedSlugs", JSON.stringify(storedSlugs));
   }
 
   return (
@@ -88,7 +88,7 @@ const RecentUpdate = () => {
                 <Tab onClick={() => setActiveTab("all")} value="all" className={`${activeTab === "all" ? "text-blue-500" : "text-white"} mr-4`}>
                   All
                 </Tab>
-                <Tab onClick={() => setActiveTab("bookmarks")} value="bookmarks" className={`${activeTab === "bookmarks" ? "text-blue-500" : "text-white"}`}>
+                <Tab onClick={() => setActiveTab("bookmarks")} value="bookmarks" className={`${activeTab === "bookmarks" ? "text-blue-500" : "text-white"} ${cookie ? "block" : "hidden"}`}>
                   Bookmarks
                 </Tab>
             </TabsHeader>
@@ -121,19 +121,19 @@ const RecentUpdate = () => {
                   <div className="grid md:grid-cols-2">
                     {manga.map((mangaItem) => (
                       <div key={mangaItem.manga._id} className="flex gap-5 mb-10 border-b pb-10 border-gray-700">
-                        <div className="w-[120px] h-[160px]">
-                          <Link to={`/series/${mangaItem.manga.slug}`} onClick={() => handleSlug("mangaSlug", mangaItem.manga.slug)} className="relative">
-                            <img src={mangaItem.manga.coverURL} alt={mangaItem.manga.title} className="h-full w-full rounded-md transition-transform duration-150 hover:scale-105"/>
+                        <div className="w-[120px] h-[160px] rounded-md overflow-hidden">
+                          <Link to={`/series/${mangaItem.manga.slug}`} className="relative">
+                            <img src={mangaItem.manga.coverURL} alt={mangaItem.manga.title} loading="lazy" className="h-full w-full rounded-md transition-transform duration-150 hover:scale-105"/>
                           </Link>
                         </div>
                         <div className="flex-1 mr-6 ">
-                          <Link to={`/series/${mangaItem.manga.slug}`} onClick={() => handleSlug("mangaSlug", mangaItem.manga.slug)} className="text-white mb-3 block text-sm font-medium transition-colors duration-150 hover:text-blue-500 cursor-pointer">
+                          <Link to={`/series/${mangaItem.manga.slug}`} className="text-white mb-3 block text-sm font-medium transition-colors duration-150 hover:text-blue-500 cursor-pointer">
                             {mangaItem.manga.title}
                           </Link>
                           <ul>
                             {mangaItem.chapters.map((chapter) => (
                               <li key={chapter._id} className="mb-2 rounded-md  py-1 text-[12px] flex items-center justify-between">
-                                <Link onClick={() => handleSlug("chapterSlug", chapter.slug)} className="cursor-pointer text-gray-400 transition-colors duration-150 hover:text-gray-200">{chapter.shortTitle}</Link>
+                                <Link to={`/${mangaItem.manga.slug}/${chapter.slug}`} className="cursor-pointer text-gray-400 transition-colors duration-150 hover:text-gray-200">{chapter.shortTitle}</Link>
                                 <span>{formatDistanceToNow(new Date(chapter.createdAt), {addSuffix: true})}</span>
                               </li>
                             ))}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"
-import { Alert, Button, Card, CardBody, CardHeader, IconButton, Typography } from "@material-tailwind/react"
+import { Alert, Card, CardBody, CardHeader, IconButton, Typography } from "@material-tailwind/react"
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid"
 import { BsChevronRight, BsChevronLeft } from "react-icons/bs"
 import api from "../lib/api"
@@ -11,6 +11,8 @@ const Recommended = () => {
   const [error, setError] = useState(null)
   const containerRef = useRef(null)
   const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+
 
   const handleScrollLeft = () => {
     const container = containerRef.current
@@ -54,11 +56,6 @@ const Recommended = () => {
     getRecommendManga()
   }, [])
 
-  const handleSlug = (mangaSlug, chapterSlug) => {
-    const storedSlugs = JSON.parse(localStorage.getItem("selectedSlugs")) || {};
-    storedSlugs[mangaSlug] = chapterSlug;
-    localStorage.setItem("selectedSlugs", JSON.stringify(storedSlugs));
-  }
   return (
     <>
       {error && (
@@ -68,17 +65,6 @@ const Recommended = () => {
           icon={<ExclamationTriangleIcon className="h-6 w-6" />}
           open={open}
           className="fixed top-0 left-0 z-50"
-          action={
-            <Button
-              variant="text"
-              color="white"
-              size="sm"
-              className="!absolute top-3 right-3"
-              onClick={() => setOpen(false)}
-            >
-              Close
-            </Button>
-          }
         >
           {error}
         </Alert>
@@ -112,12 +98,13 @@ const Recommended = () => {
             ))
           ) : (
             recommendManga.map((manga) => (
-              <Card key={manga._id} onClick={() => (handleSlug("mangaSlug", manga.slug), navigate(`/series/${manga.slug}`))} shadow={false} className="mt-6 min-w-[10rem] lg:min-w-[11rem] bg-50 group cursor-pointer">
+              <Card key={manga._id} onClick={() => navigate(`/series/${manga.slug}`)} shadow={false} className="mt-6 min-w-[10rem] lg:min-w-[11rem] bg-50 group cursor-pointer">
                 <CardHeader shadow={false} color="blue-gray" className="relative h-44">
                   <img
                     src={manga.coverURL}
                     alt="card-image"
                     className="h-full w-full object-center"
+                    loading="lazy"
                   />
                 </CardHeader>
                 <CardBody className="p-4">

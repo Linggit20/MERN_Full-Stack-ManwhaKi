@@ -1,24 +1,29 @@
 import React, { useEffect, useState } from "react"
 import api from "../lib/api"
-import { Link, useParams } from "react-router-dom"
-import { Button, Input, Typography } from "@material-tailwind/react"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { Button, IconButton, Input, Typography } from "@material-tailwind/react"
 import { BsSortNumericUpAlt, BsSortNumericDown  } from "react-icons/bs"
 
 const MangaChapter = () => {
   const [mangaChapters, setMangaChapters] = useState([])
+  const [loading, setLoading] = useState(false)
   const [sortedChapters, setSortedChapters] = useState([])
   const [sortOrder, setSortOrder] = useState("asc")
   const [searchTerm, setSearchTerm] = useState("")
   const { slug } = useParams()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const getAllChapter = async () => {
+      setLoading(true)
       try {
         const res = await api.get(`/chapter/${slug}/all`)
         setMangaChapters(res.data)
         setSortedChapters(res.data)
       } catch (err) {
         console.log(err)
+      } finally {
+        setLoading(false)
       }
     }
 
@@ -54,49 +59,77 @@ const MangaChapter = () => {
   }
 
   return (
-    <div className="bg-50 rounded-md mb-16">
-      <div className="flex items-center justify-between p-4 gap-6">
-        <Typography color="white" className="font-bold">Chapters</Typography>
-        <div className="w-full">
-          <div className="flex items-center gap-3">
-            <hr className="border-gray-700 w-full"/>
-            <span className="cursor-pointer text-white text-xl" onClick={handleSortChapters}>
-              {sortOrder === "asc" ? ( <BsSortNumericUpAlt /> ) : ( <BsSortNumericDown /> )}
-            </span>
+    loading ? (
+      <div className="bg-blue-gray-900 rounded-md mb-16">
+        <div className="flex items-center justify-between p-4 gap-6">
+          <Typography color="white" className="font-bold">Chapters</Typography>
+          <div className="w-full">
+            <div className="flex items-center gap-3">
+              <hr className="border-gray-700 w-full"/>
+              <IconButton ripple={false} className="bg-transparent shadow-none hover:shadow-none  p-0 text-white text-xl" onClick={handleSortChapters}>
+                {sortOrder === "asc" ? ( <BsSortNumericUpAlt /> ) : ( <BsSortNumericDown /> )}
+              </IconButton>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="px-4">
-        <div className="grid grid-cols-2 gap-6 mb-4">
-          <Button onClick={() => console.log(firstChapter.slug)} className="shadow-none hover:shadow-none h-16 text-sm capitalize">{firstChapter ? firstChapter.shortTitle : "N/A"}</Button>
-          <Button onClick={() => console.log(lastChapter.slug)} className="shadow-none hover:shadow-none h-16 text-sm capitalize">{lastChapter ? lastChapter.shortTitle : "N/A"}</Button>
+        <div className="px-4">
+          <div className="grid grid-cols-2 gap-6 mb-4">
+            <div className="h-[64px] bg-50 rounded-md animate-pulse"></div>
+            <div className="h-[64px] bg-50 rounded-md animate-pulse"></div>
+          </div>
+        </div>
+        <div className="px-4 mb-4 pb-4">
+          {Array.from({ length: 6 }, (_, index) => (
+            <div key={index} className="h-[46px] bg-50 rounded-md mb-3 animate-pulse"></div>
+          ))}
         </div>
       </div>
-      <div className="px-4 mb-4">
-        <Input
-          label="Search Chapter: Example Chapter 1"
-          size="lg"
-          className="px-4 text-gray-400 text-sm"
-          value={searchTerm}
-          onChange={handleSearchChapters}
-        />
+    ) : (
+      <div className="bg-50 rounded-md mb-16">
+        <div className="flex items-center justify-between p-4 gap-6">
+          <Typography color="white" className="font-bold">Chapters</Typography>
+          <div className="w-full">
+            <div className="flex items-center gap-3">
+              <hr className="border-gray-700 w-full"/>
+              <span className="cursor-pointer text-white text-xl" onClick={handleSortChapters}>
+                {sortOrder === "asc" ? ( <BsSortNumericUpAlt /> ) : ( <BsSortNumericDown /> )}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="px-4">
+          <div className="grid grid-cols-2 gap-6 mb-4">
+            <Button onClick={() => navigate(`/${slug}/${firstChapter.slug}`)} className="shadow-none hover:shadow-none h-16 text-base capitalize">{firstChapter ? firstChapter.shortTitle : "N/A"}</Button>
+            <Button onClick={() => navigate(`/${slug}/${lastChapter.slug}`)} className="shadow-none hover:shadow-none h-16 text-base capitalize">{lastChapter ? lastChapter.shortTitle : "N/A"}</Button>
+          </div>
+        </div>
+        <div className="px-4 mb-4">
+          <Input
+            label="Search Chapter: Example Chapter 1"
+            variant="standard"
+            size="lg"
+            className="px-4 text-gray-400 text-sm !border-blue-gray-700"
+            value={searchTerm}
+            onChange={handleSearchChapters}
+          />
+        </div>
+        <ul className="max-h-[370px] overflow-y-scroll x-scroll">
+          {sortedChapters.length > 0 ? (
+              sortedChapters.map((chapter) => (
+                <li key={chapter._id} className="mb-4 px-4">
+                  <Link to={`/${slug}/${chapter.slug}`} className="px-4 py-3 border border-blue-gray-700 block rounded-md text-gray-400 text-sm duration-150 hover:text-blue-500">
+                    {chapter.shortTitle}
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <Typography color="white" className="text-center my-4 mb-8">
+                No chapters found.
+              </Typography>
+            )}
+        </ul>
       </div>
-      <ul className="max-h-[370px] overflow-y-scroll x-scroll">
-        {sortedChapters.length > 0 ? (
-            sortedChapters.map((chapter) => (
-              <li key={chapter._id} className="mb-4 px-4">
-                <Link onClick={() => console.log(chapter.slug)} className="px-4 py-3 border border-blue-gray-700 block rounded-md text-gray-400 text-sm duration-150 hover:text-blue-500">
-                  {chapter.shortTitle}
-                </Link>
-              </li>
-            ))
-          ) : (
-            <Typography color="white" className="text-center my-4 mb-8">
-              No chapters found.
-            </Typography>
-          )}
-      </ul>
-    </div>
+    )
   )
 }
 

@@ -1,122 +1,85 @@
 import React, { useEffect, useState } from "react"
-import {
-  Navbar as MaterialNavbar,
-  Collapse,
-  IconButton,
-  Dialog,
-  Card,
-  CardBody,
-  Input,
-  Spinner,
-} from "@material-tailwind/react"
-import { FaBookReader } from "react-icons/fa"
-import { AiOutlineSearch } from "react-icons/ai"
+import { Navbar as MaterialNavbar, Collapse, IconButton, Dialog, Card, CardBody, Input,  Spinner,  Button, CardHeader, CardFooter, Typography, Menu, MenuHandler, MenuList, MenuItem, Alert, Tooltip } from "@material-tailwind/react"
+import { FaBookReader, FaUserCog, FaUserEdit, FaUserLock } from "react-icons/fa"
+import { AiOutlineMenu, AiOutlineClose, AiOutlineSearch, AiFillSetting } from "react-icons/ai"
 import { BiSolidUser } from "react-icons/bi"
+import { TbLogout } from "react-icons/tb"
+import { BsCheckCircleFill } from "react-icons/bs"
 import { Link } from "react-router-dom"
 import api from "../lib/api"
+import DialogForm from "./DialogForm"
+import Search from "./Search"
+import UserSetting from "./UserSetting"
 
-const Navbar = () => {
-  const [manga, setManga] = useState([])
-  const [error, setError] = useState(null)
+const Navbar = ({ cookie, setCookie}) => {
   const [loading, setLoading] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-
   const [openNav, setOpenNav] = useState(false)
-  const [openDialog, setOpenDialog] = useState(false)
+  const [openSearch, setOpenSearch] = useState(false)
+  const [openForm, setOpenForm] = useState(false)
+  const [login, setLogin] = useState(true)
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState(null)
+  const [openSettings, setOpenSettings] = useState(false)
 
+
+ // handle hiding success messages after a few seconds
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 900)
+    const timer = setTimeout(() => {
+      setMessage("")
+    }, 3000)
 
-    return () => clearTimeout(debounceTimer)
-  }, [searchTerm])
+    return () => clearTimeout(timer)
+  }, [message])
 
-  useEffect(() => {
-    if (debouncedSearchTerm !== "") {
-      getManga()
-    } else {
-      setManga([])
-    }
-  }, [debouncedSearchTerm])
 
-  const getManga = async () => {
+  const handleLogout = async () => {
     setLoading(true)
     try {
-      const res = await api.get("/manga")
-      setLoading(false)
-      setManga(res.data.mangaList)
+      const res = await api.post("auth/user/logout")
+      setMessage(res.data)
+      setCookie(false)
+      localStorage.removeItem("user")
     } catch (err) {
       console.log(err)
+    } finally {
       setLoading(false)
     }
   }
 
-  const handleSlug = (mangaSlug, chapterSlug) => {
-    const storedSlugs = JSON.parse(localStorage.getItem("selectedSlugs")) || {}
-    storedSlugs[mangaSlug] = chapterSlug
-    localStorage.setItem("selectedSlugs", JSON.stringify(storedSlugs))
-  }
-
+  // JSX for the navigation menu items
   const navList = (
-    <ul className="mb-4 mt-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-10">
-      <Link to="/bookmarks">Bookmarks</Link>
-      <Link to="/comics">Comics</Link>
+    <ul className="mb-4 mt-2 flex flex-col gap-5 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-10">
+      <Link to="/">Home</Link>
+      <Link className={`${cookie ? "block" : "hidden"}`}>Bookmarks</Link>
+      <Link>Comics</Link>
     </ul>
   )
 
   return (
     <header>
-      <Dialog
-        size="xs"
-        open={openDialog}
-        handler={() => setOpenDialog((cur) => !cur)}
-        className="bg-transparent shadow-none"
-      >
-        <Card className="mx-auto w-full max-w-[24rem] bg-50">
-          <CardBody className="flex flex-col gap-4">
-            <Input
-              label="Search"
-              variant="standard"
-              size="lg"
-              className="text-white"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </CardBody>
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <Spinner />
-            </div>
-          ) : (
-            <div className="max-h-[250px] overflow-y-scroll px-4">
-              {manga
-                .filter((item) =>
-                  item.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-                )
-                .map((item) => (
-                  <Link to={`/series/${item.slug}`} key={item._id} onClick={() => (handleSlug("mangaSlug", item.slug), setOpenDialog(false))} className="flex gap-2 cursor-pointer group">
-                    <img src={item.coverURL} alt={item.title} className="w-16 h-20 mb-4 rounded-md" />
-                    <span className="text-white text-sm duration-150 group-hover:text-blue-500">{item.title}</span>
-                  </Link>
-                ))}
-              {manga && manga.length > 0 && debouncedSearchTerm && manga.filter((item) =>
-                item.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-              ).length === 0 && (
-                <p className="text-center mb-4 text-white text-sm">No manga found.</p>
-              )}
-            </div>
-          )}
-        </Card>
-      </Dialog>
+      {message && (
+        <Alert color="green" icon={<BsCheckCircleFill />}
+          className="rounded-none border-l-4 border-[#2ec946] bg-[#2ec946]/10 font-medium text-[#2ec946]"
+        >
+          {message}
+        </Alert>
+      )}
+      <DialogForm
+        setMessage={setMessage}
+        login={login}
+        setLogin={setLogin}
+        openForm={openForm}
+        setOpenForm={setOpenForm}
+        setCookie={setCookie}
+      />
+      <Search openSearch={openSearch} setOpenSearch={setOpenSearch} />
       <div className="container">
         <MaterialNavbar
           shadow={false}
           className="bg-100 z-50 bg-opacity-100 h-max max-w-[1000px] rounded-none py-2 px-4 border-none  lg:py-4"
         >
           <div className="flex items-center justify-between text-white">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 lg:gap-6">
               <IconButton
                 variant="text"
                 className="ml-auto h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden"
@@ -124,34 +87,9 @@ const Navbar = () => {
                 onClick={() => setOpenNav(!openNav)}
               >
                 {openNav ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    className="h-6 w-6"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <span className="text-2xl"><AiOutlineClose /></span>
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
+                  <span className="text-2xl"><AiOutlineMenu /></span>
                 )}
               </IconButton>
               <Link to="/" className="flex items-center gap-2 text-4xl">
@@ -163,7 +101,7 @@ const Navbar = () => {
             </div>
             <div className="flex items-center gap-4">
               <IconButton
-                onClick={() => setOpenDialog(true)}
+                onClick={() => setOpenSearch(true)}
                 size="md"
                 fullWidth
                 className="bg-transparent ml-auto text-lg shadow-none hover:shadow-none"
@@ -172,15 +110,47 @@ const Navbar = () => {
                   <AiOutlineSearch />
                 </span>
               </IconButton>
-              <IconButton
-                size="md"
-                fullWidth
-                className="bg-50 ml-auto text-lg shadow-none hover:shadow-none"
-              >
-                <span>
-                  <BiSolidUser />
-                </span>
-              </IconButton>
+              {cookie ? (
+                <>
+                  <Menu animate={{ mount: { y: 0 }, unmount: { y: 25 }, }}>
+                    <MenuHandler>
+                      <IconButton size="md" fullWidth className="bg-50 ml-auto text-md shadow-none hover:shadow-none">
+                        <span>
+                          <AiFillSetting />
+                        </span>
+                      </IconButton>
+                    </MenuHandler>
+                    <MenuList className="bg-blue-gray-900 border-none text-white">
+                      <MenuItem onClick={handleLogout} className={`flex items-center gap-4 ${loading && "justify-center"}`}>
+                        {loading ? (
+                          <Spinner className="h-4 w-4"/>
+                        ) :  (
+                          <>
+                            <span className="text-lg"><TbLogout /></span>
+                            Logout
+                          </>
+                        )}
+                      </MenuItem>
+                      <MenuItem onClick={() => setOpenSettings(true)} className="flex items-center gap-4">
+                        <span className="text-lg"><FaUserCog /></span>
+                        Settings
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
+                  <UserSetting openSettings={openSettings} setOpenSettings={setOpenSettings} setMessage={setMessage}/>
+                </>
+              ) : (
+                <IconButton
+                  onClick={() => setOpenForm(true)}
+                  size="md"
+                  fullWidth
+                  className="bg-50 ml-auto text-lg shadow-none hover:shadow-none"
+                >
+                  <span>
+                    <BiSolidUser />
+                  </span>
+                </IconButton>
+              )}
             </div>
           </div>
           <Collapse open={openNav}>{navList}</Collapse>

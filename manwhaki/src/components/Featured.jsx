@@ -25,32 +25,26 @@ const Featured = () => {
       }
     }
 
-    getFeaturedManga();
+    getFeaturedManga()
 
     // Update window width state on window resize
     const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
+      setWindowWidth(window.innerWidth)
+    }
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize)
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+      window.removeEventListener("resize", handleResize)
+    }
   }, [])
 
   // Function to truncate synopsis based on screen width
   const truncateSynopsis = (synopsis) => {
     if (windowWidth < 1460) {
-      return synopsis.slice(0, 100) + "...";
+      return synopsis.slice(0, 100) + "..."
     }
-    return synopsis.slice(0, 250) + "...";
-  };
-
-  const handleSlug = (mangaSlug, chapterSlug) => {
-    const storedSlugs = JSON.parse(localStorage.getItem("selectedSlugs")) || {};
-    storedSlugs[mangaSlug] = chapterSlug;
-    localStorage.setItem("selectedSlugs", JSON.stringify(storedSlugs));
+    return synopsis.slice(0, 250) + "..."
   }
 
   return (
@@ -121,10 +115,11 @@ const Featured = () => {
           )}
         >
           {featuredManga.map((manga) => (
-            <div onClick={() => (handleSlug("mangaSlug", manga.slug), navigate(`/series/${manga.slug}`))} key={manga._id} className="h-full w-full relative cursor-pointer">
+            <div onClick={() => navigate(`/series/${manga.slug}`)} key={manga._id} className="h-full w-full relative cursor-pointer">
               <img
                 src={manga.coverURL}
                 alt={manga.title}
+                loading="lazy"
                 className="h-full w-full object-cover object-top filter blur-3xl"
               />
               <div className="absolute inset-0 flex gap-4 bg-black bg-opacity-40 p-4">
@@ -180,4 +175,4 @@ const Featured = () => {
   )
 }
 
-export default Featured;
+export default Featured

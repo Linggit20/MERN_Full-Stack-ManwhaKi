@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { IconButton } from "@material-tailwind/react";
 import { BiChevronUp } from "react-icons/bi";
 
 const ScrollTopButton = () => {

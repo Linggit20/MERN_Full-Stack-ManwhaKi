@@ -1,11 +1,11 @@
 import Cookies from "js-cookie";
 import { Navigate, Outlet } from "react-router-dom";
+import useAuth from "./hooks/useAuth";
 
 const ProtectedRoute = () => {
-  const accessToken = Cookies.get("auth")
-  const isAuthenticated = accessToken
+  const { auth } = useAuth()
 
-  return isAuthenticated ? (
+  return auth.accessToken ? (
     <Outlet />
   ) : (
     <Navigate to="/login" />

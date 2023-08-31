@@ -1,4 +1,3 @@
-import React from "react"
 import TotalManga from "../../components/TotalManga"
 import PopularManga from "../../components/PopularManga"
 import RecentlyAdded from "../../components/RecentlyAdded"

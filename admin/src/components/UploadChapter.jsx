@@ -1,39 +1,41 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import useGetManga from "../hooks/useGetManga"
 import { Button, Card, CardBody, Input, Spinner, Typography, Alert } from "@material-tailwind/react"
 import { ExclamationTriangleIcon, CheckCircleIcon, InformationCircleIcon, } from "@heroicons/react/24/solid"
-import api from "../lib/api"
 import ChapterForm from "./ChapterForm"
+import useApi from "../hooks/useApi"
 
 const UploadChapter = () => {
-const [isLoading, setIsLoading] = useState(false)
-const [isLoadingTwo, setIsLoadingTwo] = useState(false)
-const [success, setSuccess] = useState(false)
-const [message, setMessage] = useState(null)
-const [isError, setIsError] = useState(null)
-const [open, setOpen] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingTwo, setIsLoadingTwo] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [message, setMessage] = useState(null)
+  const [isError, setIsError] = useState(null)
+  const [open, setOpen] = useState(true)
+  const api = useApi()
 
-// Manga-related states
-const { manga, loading, error } = useGetManga()
-const [searchTerm, setSearchTerm] = useState("")
-const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-const [selectedManga, setSelectedManga] = useState(null)
-const [websiteLink, setWebsiteLink] = useState("")
-const [imageUrls, setImageUrls] = useState([])
+  // Manga-related states
+  // eslint-disable-next-line no-unused-vars
+  const { manga, loading, error } = useGetManga()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [selectedManga, setSelectedManga] = useState(null)
+  const [websiteLink, setWebsiteLink] = useState("")
+  const [imageUrls, setImageUrls] = useState([])
 
-// Chapter-related states
-const [chapter, setChapter] = useState({})
-const [chapterData, setChapterData] = useState({
-  fullTitle: "",
-  slug: "",
-  shortTitle: "",
-  chapterNum: "",
-  chapterNav: {
-    prevSlug: "",
-    nextSlug: "",
-  },
-  contentURL: [],
-})
+  // Chapter-related states
+  const [chapter, setChapter] = useState({})
+  const [chapterData, setChapterData] = useState({
+    fullTitle: "",
+    slug: "",
+    shortTitle: "",
+    chapterNum: "",
+    chapterNav: {
+      prevSlug: "",
+      nextSlug: "",
+    },
+    contentURL: [],
+  })
 
 
 

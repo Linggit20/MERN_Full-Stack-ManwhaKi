@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Card, Input, Button, Typography, Spinner, Dialog, DialogBody, DialogHeader, DialogFooter, Alert } from "@material-tailwind/react"
 import api from "../../lib/api"
 import { Link } from "react-router-dom"
@@ -36,6 +36,7 @@ const ResetPassword = () => {
 
   const handleSendEmailLink = async () =>  {
     setSuccess(false)
+    setLoading(true)
     try {
       const res = await api.post(`/auth/admin/reset-password/${email}`)
       const resetLink = res.data.message
@@ -46,6 +47,7 @@ const ResetPassword = () => {
       setMessage(err.response.data.message)
     } finally {
       setSuccess(true)
+      setLoading(false)
     }
   }
   
@@ -83,7 +85,9 @@ const ResetPassword = () => {
             <span>Cancel</span>
           </Button>
           <Button variant="gradient" color="green" onClick={confirmSubmit}>
-            <span>Confirm</span>
+            {loading ? (
+              <Spinner className="h-4 w-4"/>
+            ) : (<span>Confirm</span>)}
           </Button>
         </DialogFooter>
       </Dialog>

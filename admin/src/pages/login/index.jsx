@@ -6,7 +6,7 @@ import { FaBookReader } from "react-icons/fa"
 import Cookies from "js-cookie"
 import api from "../../lib/api"
 import usePageTitle from "../../hooks/usePageTitle"
-
+import useAuth from "../../hooks/useAuth"
 
 const Login = () => {
   const [passType, setPassType] = useState("password")
@@ -17,6 +17,8 @@ const Login = () => {
   const [error, setError] = useState(null)
   const navigate = useNavigate()
   usePageTitle("ManwhaKi - Login")
+
+  const { setAuth } = useAuth()
 
   const togglePass = () => {
     setPassType(prevType => prevType === "password" ? "text" : "password")
@@ -31,13 +33,12 @@ const Login = () => {
         password: password,
       })
 
-      const user = res.data
+      const user = res.data.user
       localStorage.setItem("currentUser", JSON.stringify(user))
-      // Cookies.set("auth", import.meta.env.VITE_TOKEN, { expires: new Date(Date.now() + 3 * 60 * 60 * 1000) })
+      setAuth(res.data)
       navigate("/")
     } catch (err) {
       setError(err.response.data.error)
-      console.log(err)
     } finally {
       setLoading(false)
     }

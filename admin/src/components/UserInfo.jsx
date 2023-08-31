@@ -1,11 +1,12 @@
 import { Card, CardBody, Spinner, Typography } from "@material-tailwind/react"
 import { useEffect, useState } from "react"
-import api from "../lib/api"
 import format from "date-fns/format"
+import useApi from "../hooks/useApi"
 
 const UserInfo = () => {
   const [users, setUser] = useState([])
   const [loading, setLoading] = useState(false)
+  const api = useApi()
 
   useEffect(() => {
     const getUser = async () => {
@@ -21,6 +22,7 @@ const UserInfo = () => {
     }
 
     getUser()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -50,13 +52,19 @@ const UserInfo = () => {
             {loading ? (
               <Spinner />
             ) : (
-              users.map((user) => (
-                <li key={user.username} className='text-[13px] text-gray-600 py-2 border-b'>
+              users.length === 0 ? (
+                <div className="h-[167.5px] flex items-center justify-center">
+                  <p className="text-lg text-center">No user has been registered</p>
+                </div>
+              ) : (
+                users.map((user, index) => (
+                <li key={index} className='text-[13px] text-gray-600 py-2 border-b'>
                   <Typography  variant="small">
                     New manga fan incoming! {user.username} joined on {format(new Date(user.createdAt), "MMMM dd, yyyy")}. Let the manga journey commence!
                   </Typography>
                 </li>
               ))
+              )
             )}
           </ul>
         </CardBody>

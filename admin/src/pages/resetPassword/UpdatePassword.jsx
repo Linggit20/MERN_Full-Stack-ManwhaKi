@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Card, Input, Checkbox, Button, Typography, } from "@material-tailwind/react"
 import api from "../../lib/api"

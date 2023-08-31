@@ -1,11 +1,13 @@
-import React, { useState } from "react"
+/* eslint-disable react/prop-types */
+import { useState } from "react"
 import { Alert, Button, Card, CardBody, Checkbox, Input, Spinner, Textarea, Typography } from "@material-tailwind/react"
 import { InformationCircleIcon, ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/solid"
-import api from "../lib/api"
 import { useLocation } from "react-router-dom"
+import useApi from "../hooks/useApi"
 
 
 const genres = ["Action", "Adaption", "Adult", "Adventure", "Another chance", "Apocalypse", "Comedy", "Coming Soon", "Cultivation", "Cute", "Demon", "Discord", "Drama", "Dungeons", "Ecchi", "Fantasy", "Game", "Genius", "Genius MC", "Harem", "Hero", "Historical", "Isekai", "Kool Kids", "Magic", "Martial Arts", "Mature", "Mecha", "Modern Setting", "Monsters", "Murim", "Mystery", "Necromancer", "Noble", "Overpowered", "Pets", "Post-Apocalyptic", "Psychological", "Rebirth", "Regression", "Reincarnation", "Return", "Returned", "Returner", "Revenge", "Romance", "School Life", "Sci-fi", "Seinen", "Shoujo", "Shounen", "Sports", "Slice of Life", "Super Hero", "Superhero", "Supernatural", "Survival", "Suspense", "System", "Thriller", "Time Travel", "Time Travel (Future)", "Tower", "Tragedy", "Video Game", "Villain", "Virtual Game", "Virtual Reality", "Virtual World", "Webtoon", "Wuxia",]
+
 
 const UploadManga = ({ edit, selectedManga, setUpdated }) => {
   const [loading, setLoading] = useState(false)
@@ -14,8 +16,10 @@ const UploadManga = ({ edit, selectedManga, setUpdated }) => {
   const [error, setError] = useState(null)
   const [open, setOpen] = useState(true)
   const location = useLocation()
+  const api = useApi()
 
   // Edit-related states
+  // eslint-disable-next-line no-unused-vars
   const [isEdit, setIsEdit] = useState(edit)
 
   // Form data states

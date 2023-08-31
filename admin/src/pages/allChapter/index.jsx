@@ -1,4 +1,3 @@
-import React from 'react'
 import AllChapter from '../../components/AllChapter'
 import usePageTitle from '../../hooks/usePageTitle'
 

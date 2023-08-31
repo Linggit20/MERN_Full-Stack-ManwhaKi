@@ -1,20 +1,22 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import useGetManga from "../hooks/useGetManga"
 import { Card, CardBody, Input, Spinner, Typography, Menu, MenuHandler, MenuList, MenuItem, Alert, Button, Dialog, DialogHeader, DialogBody, DialogFooter } from "@material-tailwind/react"
 import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/solid"
-import api from "../lib/api"
 import { BsThreeDotsVertical } from "react-icons/bs"
 import ChapterForm from "./ChapterForm"
+import useApi from "../hooks/useApi"
 
 
 const AllChapter = () => {
   // States for API calls and loading/error handling
+  // eslint-disable-next-line no-unused-vars
   const { manga, loading, error } = useGetManga()
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(null)
   const [isDeleted, setIsDeleted] = useState(false)
   const [success, setSuccess] = useState(false)
   const [message, setMessage] = useState("")
+  const api = useApi()
 
   // States for Manga-related data
   const [chapter, setChapter] = useState([])
@@ -23,6 +25,7 @@ const AllChapter = () => {
   const [selectedManga, setSelectedManga] = useState(null)
 
   // States for Dialog and Edit mode
+  // eslint-disable-next-line no-unused-vars
   const [open, setOpen] = useState(true)
   const [openDialog, setOpenDialog] = useState(false)
   const [selectedChapter, setSelectedChapter] = useState({})
@@ -69,6 +72,8 @@ const AllChapter = () => {
     if (selectedManga) {
       getMangaChapters(selectedManga._id)
     }
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDeleted])
 
   useEffect(() => {

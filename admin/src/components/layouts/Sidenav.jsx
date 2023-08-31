@@ -3,13 +3,14 @@ import { Card, Typography, List, ListItem, ListItemPrefix, Accordion, AccordionH
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline"
 import { PiBookLight, PiFilesThin } from "react-icons/pi"
 import { AiOutlineHome } from "react-icons/ai"
-import api from "../../lib/api"
 import { useLocation, useNavigate } from "react-router-dom"
 import Cookies from "js-cookie"
 import { CiLogout } from "react-icons/ci"
 import { FaBookReader } from "react-icons/fa"
+import useApi from "../../hooks/useApi"
 
 
+// eslint-disable-next-line react/prop-types
 const Sidenav = ({ onClose }) => {
   const [open, setOpen] = useState(0)
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
@@ -21,6 +22,7 @@ const Sidenav = ({ onClose }) => {
   const activeUploadManga = location.pathname === "/manga/upload"
   const activeUploadChapter = location.pathname === "/manga/chapter/upload"
   const activeAllChapter = location.pathname === "/manga/chapter"
+  const api = useApi()
 
   const handleOpen = (value) => {
     setOpen(open === value ? 0 : value)
@@ -28,12 +30,11 @@ const Sidenav = ({ onClose }) => {
 
   const logout = async () => {
     try {
-      const res = await api.post("/auth/admin/logout")
+      await api.post("/auth/admin/logout")
 
-      Cookies.remove("auth")
+      Cookies.remove("tkn")
       localStorage.removeItem("currentUser")
       navigate("/login")
-      console.log(res)
     } catch (err) {
       console.log(err)
     }
@@ -78,13 +79,13 @@ const Sidenav = ({ onClose }) => {
               variant="lead"
               className="mb-1 "
             >
-              {currentUser.name}
+              {currentUser?.name}
             </Typography>
             <Typography
               variant="small"
               className="mb-1"
             >
-              {currentUser.email}
+              {currentUser?.email}
             </Typography>
             </div>
           </div>

@@ -1,4 +1,3 @@
-import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Login from './pages/login'
 import Register from './pages/register'
@@ -11,6 +10,7 @@ import Manga from './pages/mangaList'
 import Upload from './pages/uploadManga'
 import Chapter from './pages/uploadChapter'
 import ChapterList from './pages/allChapter'
+import Persist from './Persist'
 
 const App = () => {
   return (
@@ -19,13 +19,15 @@ const App = () => {
       <Route path="/register" element={ <Register /> } />
       <Route path="/find-account" element={ <ResetPassword /> } />
 
-      <Route element={ <ProtectedRoute />} >
-        <Route path="/" element={ <Layout /> } >
-          <Route index element={ <Home />} />
-          <Route path="/manga" element={ <Manga />} />
-          <Route path="/manga/upload" element={ <Upload />} />
-          <Route path="/manga/chapter/upload" element={ <Chapter/>} />
-          <Route path="/manga/chapter" element={ <ChapterList/>} />
+      <Route element={<Persist />}>
+        <Route element={ <ProtectedRoute />} >
+          <Route path="/" element={ <Layout /> } >
+            <Route index element={ <Home />} />
+            <Route path="/manga" element={ <Manga />} />
+            <Route path="/manga/upload" element={ <Upload />} />
+            <Route path="/manga/chapter/upload" element={ <Chapter/>} />
+            <Route path="/manga/chapter" element={ <ChapterList/>} />
+          </Route>
         </Route>
       </Route>
 

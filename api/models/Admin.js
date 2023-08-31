@@ -20,6 +20,10 @@ const adminSchema = new Schema({
     enum: ["admin", "guest"],
     default: "guest",
   },
+  refreshToken: {
+    type: String,
+    default: null
+  },
   resetToken: {
     type: String,
     default: null,

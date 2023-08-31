@@ -45,4 +45,15 @@ export const addToChapterBookmark = async (req, res) => {
   }
 };
 
+export const getAllChapterBookmark = async (req, res) => {
+  try {
+    const userId = req.id
 
+    const chapterBookmark = await UserChapterBookmark.find({ userId })
+    if (!chapterBookmark) return res.status(404).json({ error: "User chapter bookmark not found" })
+
+    res.status(200).json(chapterBookmark)
+  } catch (err) {
+    console.log(err)
+  }
+}

@@ -1,25 +1,27 @@
 import { useEffect, useState } from "react"
-import { Alert, Button, Carousel, Typography } from "@material-tailwind/react"
-import { ExclamationTriangleIcon } from "@heroicons/react/24/solid"
-import api from "../lib/api"
 import { useNavigate } from "react-router-dom"
+import { Button, Carousel, Typography } from "@material-tailwind/react"
+import { FeaturedLoading } from "../LoadingComponents"
+import api from "../../lib/api"
+import useGlobalError from "../../hooks/useGlobalError"
 
 const Featured = () => {
   const [featuredManga, setFeaturedManga] = useState([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
   const navigate = useNavigate()
+  const { globalError, setGlobalError } = useGlobalError()
 
   useEffect(() => {
     const getFeaturedManga = async () => {
       setLoading(true)
+      setGlobalError(null)
+
       try {
         const res = await api.get("/featured")
         setFeaturedManga(res.data.featuredMangaList)
       } catch (err) {
-        console.log(err)
-        setError(err.response.data.error)
+        setGlobalError("Network error occurred. Please try again later")
       } finally {
         setLoading(false)
       }
@@ -37,6 +39,8 @@ const Featured = () => {
     return () => {
       window.removeEventListener("resize", handleResize)
     }
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Function to truncate synopsis based on screen width
@@ -47,52 +51,16 @@ const Featured = () => {
     return synopsis.slice(0, 250) + "..."
   }
 
+  if (globalError) {
+    return (
+      <FeaturedLoading />
+    )
+  }
+
   return (
     <>
-      {error && (
-        <Alert
-          variant="gradient"
-          color="red"
-          icon={<ExclamationTriangleIcon className="h-6 w-6" />}
-          open={open}
-          className='fixed top-0 left-0 z-50'
-          action={
-            <Button
-              variant="text"
-              color="white"
-              size="sm"
-              className="!absolute top-3 right-3"
-              onClick={() => setOpen(false)}
-            >
-              Close
-            </Button>
-          }
-        >
-          {error}
-        </Alert>
-      )}
       {loading ? (
-        <div className="h-[256px] mb-8 bg-50 rounded-md p-2">
-          <div className="bg-blue-gray-900 w-full hfull h-[240px] rounded-md p-4 relative">
-            <div className="absolute bottom-3 w-full animate-pulse">
-              <div className="flex items-center justify-center gap-2">
-                <span className="bg-100 rounded-full h-1 w-6"></span>
-                <span className="bg-100 rounded-full h-1 w-6"></span>
-                <span className="bg-100 rounded-full h-1 w-6"></span>
-              </div>
-            </div>
-            <div className="flex justify-between animate-pulse">
-              <div className="flex-1">
-                <div className="bg-100 w-[80%] h-10 rounded-lg mb-8"></div>
-                <div className="bg-100 w-[60%] h-6 rounded-lg mb-2"></div>
-                <div className="bg-100 w-[60%] h-6 rounded-lg mb-8"></div>
-                <div className="bg-100 w-[25%] h-4 rounded-lg mb-2"></div>
-                <div className="bg-100 w-[25%] h-4 rounded-lg mb-2"></div>
-              </div>
-              <div className="bg-100 rounded-md h-[96px] w-[64px] sm:h-48 sm:w-32"></div>
-            </div>
-          </div>
-        </div>
+        <FeaturedLoading />
       ) : (
         <Carousel
           className="h-64 mb-8"
@@ -117,16 +85,16 @@ const Featured = () => {
           {featuredManga.map((manga) => (
             <div onClick={() => navigate(`/series/${manga.slug}`)} key={manga._id} className="h-full w-full relative cursor-pointer">
               <img
+                className="h-full w-full object-cover object-top filter blur-3xl"
                 src={manga.coverURL}
                 alt={manga.title}
                 loading="lazy"
-                className="h-full w-full object-cover object-top filter blur-3xl"
               />
               <div className="absolute inset-0 flex gap-4 bg-black bg-opacity-40 p-4">
                 <div className="flex-1">
                   <div>
-                    <div className="sm:mb-3">
-                      <Typography className={`text-lg text-white mb-1`} variant="h1">
+                    <div className="mb-3">
+                      <Typography className="text-lg text-white mb-1" variant="h1">
                         {windowWidth < 650
                           ? `${manga.title.slice(0, 20)}${
                              manga.title.length > 20 ? "..." : ""
@@ -139,7 +107,7 @@ const Featured = () => {
                           {manga.genre.slice(0, 3).map((item, index) => (
                             <span
                               key={index}
-                              className="inline-block mr-2 text-white text-[12px] bg-gray-500 py-1 px-2 rounded-sm mb-2"
+                              className="inline-block mr-2 text-white text-[12px] bg-gray-700  px-2 rounded-sm mb-1"
                             >
                               {item}
                             </span>
@@ -149,22 +117,22 @@ const Featured = () => {
                         <span>No available genre</span>
                       )}
                     </div>
-                    <Typography variant="small" color="white" className={`${windowWidth > 1460 ? "max-w-[900px]" : ""} mb-4`}>
+                    <Typography color="white" className={`${windowWidth > 1460 ? "max-w-[900px]" : ""} mb-4 text-[12px] sm:text-sm`}>
                       <span className="block mb-1 font-semibold">Summary</span>
                       {truncateSynopsis(manga.synopsis)}
                     </Typography>
                     <div>
-                      <Typography variant="small" color="white">
+                      <Typography color="white" className="text-[12px] sm:text-sm">
                         Author: {manga.author ? manga.author : "-"}
                       </Typography>
-                      <Typography variant="small" color="white">
+                      <Typography color="white" className="text-[12px] sm:text-sm">
                          Status:  {manga.status}
                       </Typography>
                     </div>
                   </div>
                 </div>
                 <div className={`${windowWidth > 1460 ? "w-36  h-48" : "w-16 h-20 sm:w-20 sm:h-24 md:w-24 md:h-28 2xl:w-28 2xl:h-32"}`}>
-                  <img src={manga.coverURL} alt={manga.title} className="rounded-md object-cover w-full"/>
+                  <img src={manga.coverURL} alt={manga.title} className="rounded-md object-cover w-full"  loading="lazy"/>
                 </div>
               </div>
             </div>

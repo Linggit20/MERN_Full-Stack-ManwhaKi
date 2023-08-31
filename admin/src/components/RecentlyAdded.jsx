@@ -1,10 +1,10 @@
-import React from "react"
 import useGetManga from "../hooks/useGetManga"
 import { format } from "date-fns"
 import { Typography, Card, CardBody, Spinner } from "@material-tailwind/react"
 import { Link } from "react-router-dom"
 
 const RecentlyAdded = () => {
+  // eslint-disable-next-line no-unused-vars
   const { manga, loading, error } = useGetManga()
   const slicedManga = manga.slice(0, 10)
 

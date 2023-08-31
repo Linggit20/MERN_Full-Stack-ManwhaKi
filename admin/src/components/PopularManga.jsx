@@ -1,13 +1,12 @@
 import { Typography, Card, CardBody, Spinner } from "@material-tailwind/react"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { HiOutlineExternalLink } from "react-icons/hi"
-import { useNavigate } from "react-router-dom"
-import api from "../lib/api"
+import useApi from "../hooks/useApi"
 
 const PopularManga = () => {
   const [mangaList, setMangaList] = useState([])
   const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
+  const api = useApi()
 
   useEffect(()  => {
     const getPopularManga = async () => {
@@ -24,6 +23,7 @@ const PopularManga = () => {
     }
   }
   getPopularManga()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 

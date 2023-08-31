@@ -1,4 +1,3 @@
-import React from "react"
 import UploadChapter from "../../components/UploadChapter"
 import usePageTitle from "../../hooks/usePageTitle"
 

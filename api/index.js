@@ -3,6 +3,7 @@ import mongoose from "mongoose"
 import dotenv from "dotenv"
 import cookieParser from "cookie-parser"
 import cors from "cors"
+import morgan from "morgan"
 
 // Admin dashboard
 import authAdminRouter from "./routes/admin/authAdminRoute.js"
@@ -26,9 +27,19 @@ import recommendCollectionRouter from "./routes/client/recommendedRoute.js"
 
 const app = express()
 dotenv.config()
-app.use(cors({ origin: "http://localhost:5173", credentials: true }))
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://manwhaki-admin.netlify.app",
+    "https://manwhaki.netlify.app",
+  ],
+  credentials: true
+}))
+
 app.use(express.json())
 app.use(cookieParser())
+app.use(morgan("dev"))
 
 
 const connect = async () => {
@@ -61,6 +72,7 @@ app.use("/api", userBookmarkRouter)
 app.use("/api", userChapterBookmarkRouter)
 app.use("/api", featuredCollectionRouter)
 app.use("/api", recommendCollectionRouter)
+
 
 app.listen(process.env.PORT, async () => {
   try {

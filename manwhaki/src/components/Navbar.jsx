@@ -1,83 +1,79 @@
-import React, { useEffect, useState } from "react"
-import { Navbar as MaterialNavbar, Collapse, IconButton, Dialog, Card, CardBody, Input,  Spinner,  Button, CardHeader, CardFooter, Typography, Menu, MenuHandler, MenuList, MenuItem, Alert, Tooltip } from "@material-tailwind/react"
-import { FaBookReader, FaUserCog, FaUserEdit, FaUserLock } from "react-icons/fa"
+import { useEffect, useState } from "react"
+import { Navbar as MaterialNavbar, IconButton, Collapse, Menu, MenuHandler, MenuList, MenuItem } from "@material-tailwind/react"
+import { Link, useNavigate } from "react-router-dom"
+import { FaBookReader, FaUserCog } from "react-icons/fa"
 import { AiOutlineMenu, AiOutlineClose, AiOutlineSearch, AiFillSetting } from "react-icons/ai"
 import { BiSolidUser } from "react-icons/bi"
 import { TbLogout } from "react-icons/tb"
-import { BsCheckCircleFill } from "react-icons/bs"
-import { Link } from "react-router-dom"
-import api from "../lib/api"
-import DialogForm from "./DialogForm"
+import Cookies from "js-cookie"
+import useGlobalError from "../hooks/useGlobalError"
 import Search from "./Search"
-import UserSetting from "./UserSetting"
+import useAuth from "../hooks/useAuth"
+import useApi from "../hooks/useApi"
+import Announcement from "./Announcement"
 
-const Navbar = ({ cookie, setCookie}) => {
-  const [loading, setLoading] = useState(false)
+
+const Navbar = () => {
   const [openNav, setOpenNav] = useState(false)
   const [openSearch, setOpenSearch] = useState(false)
-  const [openForm, setOpenForm] = useState(false)
-  const [login, setLogin] = useState(true)
-  const [message, setMessage] = useState("")
-  const [error, setError] = useState(null)
-  const [openSettings, setOpenSettings] = useState(false)
+  const navigate = useNavigate()
+  const { state, dispatch } = useAuth()
 
+  const api = useApi()
+  const { setGlobalError } = useGlobalError()
 
- // handle hiding success messages after a few seconds
+  // Add a resize event listener to close the mobile menu on larger screens
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMessage("")
-    }, 3000)
+    window.addEventListener(
+      "resize",
+      () => window.innerWidth >= 960 && setOpenNav(false),
+    )
+  }, [])
 
-    return () => clearTimeout(timer)
-  }, [message])
-
-
+  // Handle user logout
   const handleLogout = async () => {
-    setLoading(true)
+    setGlobalError(null)
+
     try {
       const res = await api.post("auth/user/logout")
-      setMessage(res.data)
-      setCookie(false)
+
+      Cookies.remove("accessToken")
       localStorage.removeItem("user")
+      dispatch({
+        type: "LOGOUT",
+        payload: {
+          accessToken: "",
+          user: "",
+          message: "Logout successfully"
+        }
+      })
+      
+      localStorage.setItem("successMsg", JSON.stringify(res.data))
+      navigate("/")
     } catch (err) {
-      console.log(err)
-    } finally {
-      setLoading(false)
+      setGlobalError("Network error occurred. Please try again later")
     }
   }
 
-  // JSX for the navigation menu items
+  // Navigation links list
   const navList = (
-    <ul className="mb-4 mt-2 flex flex-col gap-5 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-10">
-      <Link to="/">Home</Link>
-      <Link className={`${cookie ? "block" : "hidden"}`}>Bookmarks</Link>
-      <Link>Comics</Link>
+    <ul className="mb-4 mt-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
+      <li>
+        <Link onClick={() => setOpenNav(false)} to="/" className="text-gray-300 duration-150 hover:text-white">Home</Link>
+      </li>
+      <li>
+        <Link onClick={() => setOpenNav(false)} to="/bookmarks" className={`text-gray-300 duration-150 hover:text-white ${state.accessToken ? "block" : "hidden"}`}>Bookmarks</Link>
+      </li>
     </ul>
   )
 
+
   return (
     <header>
-      {message && (
-        <Alert color="green" icon={<BsCheckCircleFill />}
-          className="rounded-none border-l-4 border-[#2ec946] bg-[#2ec946]/10 font-medium text-[#2ec946]"
-        >
-          {message}
-        </Alert>
-      )}
-      <DialogForm
-        setMessage={setMessage}
-        login={login}
-        setLogin={setLogin}
-        openForm={openForm}
-        setOpenForm={setOpenForm}
-        setCookie={setCookie}
-      />
+      <Announcement />
       <Search openSearch={openSearch} setOpenSearch={setOpenSearch} />
-      <div className="container">
-        <MaterialNavbar
-          shadow={false}
-          className="bg-100 z-50 bg-opacity-100 h-max max-w-[1000px] rounded-none py-2 px-4 border-none  lg:py-4"
-        >
+      <MaterialNavbar shadow={false} className="bg-100 mx-auto max-w-[1000px] rounded-none border-none py-2 px-4 lg:py-4 mb-4">
+        <div className="container flex items-center justify-between text-blue-gray-900">
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center gap-4 lg:gap-6">
               <IconButton
@@ -93,69 +89,60 @@ const Navbar = ({ cookie, setCookie}) => {
                 )}
               </IconButton>
               <Link to="/" className="flex items-center gap-2 text-4xl">
-                <span className="text-blue-500 mb-1">
-                  <FaBookReader />
-                </span>
+                <span className="text-blue-500 mb-1"><FaBookReader /></span>
               </Link>
               <div className="hidden lg:block">{navList}</div>
             </div>
-            <div className="flex items-center gap-4">
-              <IconButton
-                onClick={() => setOpenSearch(true)}
-                size="md"
-                fullWidth
-                className="bg-transparent ml-auto text-lg shadow-none hover:shadow-none"
-              >
-                <span>
-                  <AiOutlineSearch />
-                </span>
-              </IconButton>
-              {cookie ? (
-                <>
-                  <Menu animate={{ mount: { y: 0 }, unmount: { y: 25 }, }}>
-                    <MenuHandler>
-                      <IconButton size="md" fullWidth className="bg-50 ml-auto text-md shadow-none hover:shadow-none">
-                        <span>
-                          <AiFillSetting />
-                        </span>
-                      </IconButton>
-                    </MenuHandler>
-                    <MenuList className="bg-blue-gray-900 border-none text-white">
-                      <MenuItem onClick={handleLogout} className={`flex items-center gap-4 ${loading && "justify-center"}`}>
-                        {loading ? (
-                          <Spinner className="h-4 w-4"/>
-                        ) :  (
-                          <>
-                            <span className="text-lg"><TbLogout /></span>
-                            Logout
-                          </>
-                        )}
-                      </MenuItem>
-                      <MenuItem onClick={() => setOpenSettings(true)} className="flex items-center gap-4">
-                        <span className="text-lg"><FaUserCog /></span>
-                        Settings
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                  <UserSetting openSettings={openSettings} setOpenSettings={setOpenSettings} setMessage={setMessage}/>
-                </>
-              ) : (
-                <IconButton
-                  onClick={() => setOpenForm(true)}
-                  size="md"
-                  fullWidth
-                  className="bg-50 ml-auto text-lg shadow-none hover:shadow-none"
-                >
-                  <span>
-                    <BiSolidUser />
-                  </span>
-                </IconButton>
-              )}
-            </div>
           </div>
-          <Collapse open={openNav}>{navList}</Collapse>
-        </MaterialNavbar>
-      </div>
+          <div className="flex items-center gap-4">
+            <IconButton
+              onClick={() => setOpenSearch(true)}
+              className="bg-transparent ml-auto text-lg shadow-none hover:shadow-none"
+              size="md"
+              fullWidth
+            >
+              <span>
+                <AiOutlineSearch />
+              </span>
+            </IconButton>
+          { state.accessToken ? (
+            <Menu animate={{ mount: { y: 0 }, unmount: { y: 25 }, }}>
+              <MenuHandler>
+                <IconButton size="md" fullWidth className="bg-50 ml-auto text-md shadow-none hover:shadow-none outline-none">
+                  <span><AiFillSetting /></span>
+                </IconButton>
+              </MenuHandler>
+              <MenuList className="bg-blue-gray-900 border-none text-white">
+                <MenuItem onClick={handleLogout} className={`flex items-center gap-4`}>
+                  <span className="text-lg"><TbLogout /></span>
+                  Logout
+                </MenuItem>
+                <MenuItem onClick={() => navigate("/settings")} className="flex items-center gap-4">
+                  <span className="text-lg"><FaUserCog /></span>
+                  Settings
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          ) : (
+            <IconButton
+              onClick={() => navigate("/login")}
+              size="md"
+              fullWidth
+              className="bg-50 ml-auto text-lg shadow-none hover:shadow-none"
+            >
+              <span>
+                <BiSolidUser />
+              </span>
+            </IconButton>
+          ) }
+          </div>
+        </div>
+        <Collapse open={openNav}>
+          <div className="container mx-auto">
+            {navList}
+          </div>
+        </Collapse>
+      </MaterialNavbar>
     </header>
   )
 }

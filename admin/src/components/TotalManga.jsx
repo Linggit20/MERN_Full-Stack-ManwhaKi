@@ -1,4 +1,3 @@
-import React from "react"
 import useGetManga from "../hooks/useGetManga"
 import { Spinner, Typography, Menu, MenuHandler, MenuList, MenuItem, Card, CardBody } from "@material-tailwind/react"
 import { BsThreeDots } from "react-icons/bs"

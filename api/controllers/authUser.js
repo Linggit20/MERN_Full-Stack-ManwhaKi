@@ -28,15 +28,27 @@ export const register = async (req, res) => {
       password: hashPassword
     })
 
+    const accessToken =  jwt.sign(
+      { id: user._id },
+      process.env.JWT_CLIENT_SECRET,
+      { expiresIn: "1hr" }
+    )
+    const refreshToken =  jwt.sign(
+      { id: user._id },
+      process.env.JWT_CLIENT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    )
+
+    user.refreshToken = refreshToken
     await user.save()
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_USER_KEY)
-    const { password:_, _id, resetToken, resetTokenExpires, createdAt, updatedAt, __v, ...info } = user._doc
-    res.cookie("accessToken", token, {
-      httpOnly: false,
+    const { password:_, refreshToken:__, _id, resetToken, resetTokenExpires, createdAt, updatedAt, __v, ...info } = user._doc
+
+    res.cookie("accessToken", refreshToken, {
+      httpOnly: true,
       sameSite: "none",
       secure: true,
-    }).status(200).json({message: "Account created successfully", info})
+    }).status(201).json({ accessToken, message: "Account created successfully", user: info })
   } catch (err) {
     console.log(err)
     res.status(500).json({ error: "Something went wrong" })
@@ -55,13 +67,28 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) return res.status(401).json({ error: "Incorrect username or password" })
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_USER_KEY)
-    const { password:_, _id, resetToken, resetTokenExpires, createdAt, updatedAt, __v, ...info } = user._doc
-    res.cookie("accessToken", token, {
-      httpOnly: false,
+    const accessToken =  jwt.sign(
+      { id: user._id} ,
+      process.env.JWT_CLIENT_SECRET,
+      { expiresIn: "1hr" }
+    )
+
+    const refreshToken =  jwt.sign(
+      { id: user._id },
+      process.env.JWT_CLIENT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    )
+
+    user.refreshToken = refreshToken
+    await user.save()
+
+    const { password:_, refreshToken:__, _id, resetToken, resetTokenExpires, createdAt, updatedAt, __v, ...info } = user._doc
+
+    res.cookie("accessToken", refreshToken, {
+      httpOnly: true,
       sameSite: "none",
-      secure: true, 
-    }).status(200).json({message: "Successfully logged in", info})
+      secure: true,
+    }).status(200).json({ accessToken, message: "Successfully logged in", user: info })
   } catch (err) {
     console.log(err)
     res.status(500).send("Something went wrong")
@@ -69,16 +96,74 @@ export const login = async (req, res) => {
 }
 
 
-//  Logout
+// Logout
 export const logout = async (req, res) => {
-  res.clearCookie("accessToken", {
-    sameSite: "none",
-    secure: true,
-  }).status(200).send("Logged out successfully")
+  try {
+    const cookies = req.cookies.accessToken
+    if (!cookies) return res.sendStatus(204)
+
+    const refreshToken = cookies
+
+    const user = await User.findOne({ refreshToken })
+    if (user) {
+      user.refreshToken= ""
+      await user.save()
+      res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      }).status(200).json({ message: "Logout successfully"})
+    } else {
+      res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none"
+      }).status(200).json({ message: "Logout successfully"})
+    }
+  } catch (err) {
+    console.log(err)
+    res.status(500).send("Something went wrong during logout")
+  }
+}
+
+// Handle Refresh Token
+export const handleRefreshToken = async (req, res) => {
+  try {
+    const cookies = req.cookies.accessToken
+    if (!cookies) return res.status(401).json({ error: "Unauthorized"})
+    
+    const refreshToken = cookies
+ 
+    const user = await User.findOne({ refreshToken })
+    if(!user) return res.status(403).json({ error: "Forbidden"})
+
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_CLIENT_REFRESH_SECRET,
+      (err, payload) => {
+        if (err || user._id.toString() !== payload.id) {
+          return res.status(403).json({ error: "Forbidden"})
+        }
+
+        const accessToken = jwt.sign(
+          { id: payload.id },
+          process.env.JWT_CLIENT_SECRET,
+          { expiresIn: "1hr"}
+        )
+
+        const { password:_, refreshToken:__, _id, resetToken, resetTokenExpires, createdAt, updatedAt, __v, ...info } = user._doc
+
+        res.status(201).json({ accessToken, user: info })
+      }
+    )
+  } catch (err) {
+    console.log(err)
+    res.status(500).send("Something went wrong")
+  }
 }
 
 
-// updata credentials
+// update credentials
 export const updateCredentials = async (req, res) => {
   try {
     const { currentPassword, username, newPassword } = req.body
@@ -142,7 +227,7 @@ export const requestResetLink = async (req, res) => {
       expiresIn: "5m",
     })
 
-    const resetLink = `http://localhost:5173/reset-password?id=${user.id}&token=${token}`
+    const resetLink = `https://manwhaki.netlify.app/reset-password?id=${user.id}&token=${token}`
 
     const transporter = nodemailer.createTransport({
       service: "Gmail",

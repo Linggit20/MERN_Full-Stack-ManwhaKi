@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react"
-import api from "../lib/api"
+import useApi from "./useApi"
+
 
 const useGetManga = () => {
   const [manga, setManga] = useState([])
   const [loading, setLoading] = useState(false)
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState(null)
+  const api = useApi()
 
 
   useEffect(() => {
@@ -22,6 +25,7 @@ const useGetManga = () => {
     }
 
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return { manga, loading} 

@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
 import { Alert, Button, Card, CardBody, Carousel, Spinner, Typography } from "@material-tailwind/react"
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid"
-import api from "../lib/api"
+import useApi from "../hooks/useApi"
 
 const FeaturedManga = () => {
   const [featuredManga, setFeaturedManga] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+  const api = useApi()
 
   useEffect(() => {
     const getFeaturedManga = async () => {
@@ -35,6 +36,8 @@ const FeaturedManga = () => {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Function to truncate synopsis based on screen width
@@ -60,6 +63,7 @@ const FeaturedManga = () => {
               color="white"
               size="sm"
               className="!absolute top-3 right-3"
+              // eslint-disable-next-line no-undef
               onClick={() => setOpen(false)}
             >
               Close

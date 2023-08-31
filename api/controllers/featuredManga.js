@@ -18,7 +18,7 @@ export const createFeaturedManga = async (req, res) => {
 
     await featuredManga.save()
 
-    res.status(200).send("Manga is successfully added to the featured")
+    res.status(200).send("Featured manga created successfully")
   } catch (err) {
     console.log(err)
     res.status(500).json({ error: "Something went wrong" })

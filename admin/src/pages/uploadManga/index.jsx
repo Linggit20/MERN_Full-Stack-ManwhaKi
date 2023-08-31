@@ -1,4 +1,3 @@
-import React from "react"
 import UploadManga from "../../components/UploadManga"
 import usePageTitle from "../../hooks/usePageTitle"
 

@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { Typography, Card, CardBody, Spinner, Button, Dialog, DialogHeader, DialogBody, DialogFooter, CardHeader, Menu, MenuHandler, MenuList, MenuItem,Alert, } from "@material-tailwind/react"
 import { ExclamationTriangleIcon,  CheckCircleIcon } from "@heroicons/react/24/solid"
 import { BsThreeDotsVertical } from "react-icons/bs"
-import api from "../lib/api"
 import UploadManga from "./UploadManga"
+import useApi from "../hooks/useApi"
 
 const MangaList = () => {
   // States for Manga data and loading/error handling
@@ -15,10 +16,11 @@ const MangaList = () => {
   const [error, setError] = useState(null)
   const [featuredManga, setFeaturedManga] = useState([])
   const [recommendedManga, setRecommendedManga] = useState([])
+  const api = useApi()
 
   // States for Dialog and Edit mode
   const [selectedManga, setSelectedManga]  = useState({})
-  const [deleted, setDeleted] = useState(true)
+  const [deleted, setDeleted] = useState(false)
   const [edit, setEdit] = useState(false)
   const [size, setSize] = useState(null)
   const [updated, setUpdated] = useState(false)
@@ -37,7 +39,7 @@ const MangaList = () => {
 
   }
 
-  // Set succes &  error to null
+  // Set succes to null
   useEffect(() => {
     const timer = setTimeout(() => {
       setSuccess(null)
@@ -66,52 +68,47 @@ const MangaList = () => {
     getManga()
   }, [page, deleted, updated])
 
+  useEffect(() => {  
+    getFeaturedManga()
+    getRecommendedManga()
+  }, [])
 
   // Funtion to fetch FeaturedManga
-  useEffect(() => {
-    const getFeaturedManga = async () => {
-      try {
-        const res = await api.get("/featured/all")
-        const featuredMangaList = res.data.featuredMangaList.map((manga) => manga._id)
-        setFeaturedManga(featuredMangaList)
-      } catch (err) {
-        console.log(err)
-        setError(err.response.data.error)
-      }
+  const getFeaturedManga = async () => {
+    try {
+      const res = await api.get("/featured/all")
+      const featuredMangaList = res.data.featuredMangaList.map((manga) => manga._id)
+      setFeaturedManga(featuredMangaList)
+    } catch (err) {
+      console.log(err)
+      setError(err.response.data.error)
     }
-  
-    getFeaturedManga()
-  }, [featuredManga])
+  }
 
   // Funtion to fetch RecommendedManga
-  useEffect(() => {
-    const getRecommendedManga = async () => {
-      try {
-        const res = await api.get("/recommend/all")
-        const recommendedManga = res.data.recommendedManga.map((manga) => manga._id)
-        setRecommendedManga(recommendedManga)
-      } catch (err) {
-        console.log(err)
-        setError(err.response.data.error)
-      }
+  const getRecommendedManga = async () => {
+    try {
+      const res = await api.get("/recommend/all")
+      const recommendedManga = res.data.recommendedManga.map((manga) => manga._id)
+      setRecommendedManga(recommendedManga)
+    } catch (err) {
+      console.log(err)
+      setError(err.response.data.error)
     }
-
-    getRecommendedManga()
-  }, [recommendedManga])
-
+  }
 
   // Function to delete manga
   const deleteManga = async (mangaId) => {
-  setSuccess(false)
-   try {
-    const res = await api.delete(`/manga/delete/${mangaId}`)
-    setDeleted(true)
-    setSuccess(res.data)
-   } catch (err) {
-    setError(err.response.data.error)
-   }
+    setDeleted(false)
+    setSuccess(false)
+    try {
+      const res = await api.delete(`/manga/delete/${mangaId}`)
+      setDeleted(true)
+      setSuccess(res.data)
+    } catch (err) {
+      setError(err.response.data.error)
+    }
   }
-
 
   // Function add to recommended
   const addToRecommended = async (mangaId) => {
@@ -119,6 +116,7 @@ const MangaList = () => {
     try {
       const res = await api.post(`/add/recommend/${mangaId}`)
       setSuccess(res.data)
+      getRecommendedManga()
     } catch (err) {
       setError(err.response.data.error)
     }
@@ -129,12 +127,12 @@ const MangaList = () => {
     try {
       const res = await api.delete(`/remove/recommend/${mangaId}`)
       setSuccess(res.data)
+      getRecommendedManga()
     } catch (err) {
       console.log(err)
       setError(err.response.data.error)
     }
   }
-
 
   // Function add to featured
   const addToFeatured = async (mangaId) => {
@@ -142,6 +140,7 @@ const MangaList = () => {
     try {
       const res = await api.post(`/add/featured/${mangaId}`)
       setSuccess(res.data)
+      getFeaturedManga()
     } catch (err) {
       console.log(err)
       setError(err.response.data.error)
@@ -154,12 +153,12 @@ const MangaList = () => {
     try {
       const res = await api.delete(`/remove/featured/${mangaId}`)
       setSuccess(res.data)
+      getFeaturedManga()
     } catch (err) {
       console.log(err)
       setError(err.response.data.error)
     }
   }
-
 
   // Functions to navigate between pages
   const next = () => hasNextPage && setPage((prevState) => prevState + 1)

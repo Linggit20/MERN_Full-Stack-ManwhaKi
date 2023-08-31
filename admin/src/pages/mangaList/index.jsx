@@ -1,4 +1,3 @@
-import React from "react"
 import MangaList from "../../components/MangaList"
 import usePageTitle from "../../hooks/usePageTitle"
 

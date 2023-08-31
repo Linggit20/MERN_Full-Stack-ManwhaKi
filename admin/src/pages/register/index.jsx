@@ -53,7 +53,7 @@ const Register = () => {
       })
 
       Cookies.set("registrationSuccess", res.data, { expires: 1 / 86400 })
-      navigate("/")
+      navigate("/login")
     } catch (err) {
 
       setError(err.response.data.error)

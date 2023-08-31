@@ -125,7 +125,7 @@ export const allChapter = async (req, res) => {
     })
 
     chapterData.sort((a, b) => b.chapterNum - a.chapterNum)
-    res.status(200).send(chapterData)
+    res.status(200).json({ mangaId: mangaId, chapterData })
   } catch (err) {
     console.log(err)
     res.status(500).json({ msg: err.message})

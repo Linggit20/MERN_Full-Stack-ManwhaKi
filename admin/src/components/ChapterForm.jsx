@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Button, Card, CardBody, Input, Spinner, Typography } from '@material-tailwind/react'
 import { useLocation } from 'react-router-dom'
 

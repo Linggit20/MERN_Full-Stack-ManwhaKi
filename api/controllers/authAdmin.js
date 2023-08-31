@@ -41,23 +41,28 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, admin.password)
     if (!isMatch) return res.status(401).json({ error: "Incorrect email or password" })
 
-    const token = jwt.sign({ id: admin._id, role: admin.role }, process.env.JWT_ADMIN_KEY)
-    const auth = jwt.sign({ id: admin._id }, process.env.JWT_AUTH_KEY)
+    const accessToken =  jwt.sign(
+      { id: admin._id, role: admin.role},
+      process.env.JWT_DASHBOARD_SECRET,
+      { expiresIn: "15m" }
+    )
+    const refreshToken =  jwt.sign(
+      { id: admin._id, role: admin.role},
+      process.env.JWT_DASHBOARD_REFRESH_SECRET,
+      { expiresIn: "1d" }
+    )
+
+    admin.refreshToken = refreshToken
+    await admin.save()
     
-    const { password: _, _id, role, createdAt, updatedAt, resetToken, resetTokenExpires, __v, ...info } = admin._doc
-    res.cookie("accessToken", token, {
+    const { password: _, refreshToken:__, _id, role, createdAt, updatedAt, resetToken, resetTokenExpires, __v, ...info } = admin._doc
+
+    res.cookie("tkn", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      expires: new Date(Date.now() + 3 * 60 * 60 * 1000), 
-    })
-    res.cookie("auth", auth, {
-      secure: true,
-      sameSite: "none",
-      expires: new Date(Date.now() + 3 * 60 * 60 * 1000), 
-    })
-
-    res.status(200).json(info)
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    }).status(200).json({ accessToken, user: info, message: "You successfully logged in"})
   } catch (err) {
     console.log(err)
     res.status(500).json({ error: "Something went wrong" })
@@ -69,24 +74,66 @@ export const login = async (req, res) => {
 // Logout
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("accessToken", {
-      sameSite: "none",
-      secure: true,
-    })
+    const cookies = req.cookies.tkn
+    if (!cookies) return res.sendStatus(204)
 
-    res.clearCookie("auth", {
-      sameSite: "none",
-      secure: true,
-    })
+    const refreshToken = cookies
 
-    res.status(200).send("Logged out successfully")
+    const admin = await Admin.findOne({ refreshToken })
+    if (admin) {
+      admin.refreshToken= ""
+      await admin.save()
+      res.clearCookie("tkn", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      }).status(200).json({ message: "Logout successfully"})
+    } else {
+      res.clearCookie("tkn", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none"
+      }).status(200).json({ message: "Logout successfully"})
+    }
   } catch (err) {
     console.log(err)
     res.status(500).send("Something went wrong during logout")
   }
 }
 
+// Handle Refresh Token
+export const handleRefreshToken = async (req, res) => {
+  try {
+    const cookies = req.cookies.tkn
+    if (!cookies) return res.status(401).json({ error: "Unauthorized"})
+    
+    const refreshToken = cookies
+ 
+    const user = await Admin.findOne({ refreshToken })
+    if(!user) return res.status(403).json({ error: "Forbidden"})
 
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_DASHBOARD_REFRESH_SECRET,
+      (err, payload) => {
+        if (err || user._id.toString() !== payload.id || user.role !== payload.role) {
+          return res.status(403).json({ error: "Forbidden"})
+        }
+
+        const accessToken = jwt.sign(
+          { id: payload.id, role: payload.role},
+          process.env.JWT_DASHBOARD_SECRET,
+          { expiresIn: "15m"}
+        )
+
+        res.status(201).json({ accessToken })
+      }
+    )
+  } catch (err) {
+    console.log(err)
+    res.status(500).send("Something went wrong")
+  }
+}
 
 //  Find the account to reset password
 export const findAccount = async (req, res) => {
@@ -131,7 +178,7 @@ export const resetPassword = async (req, res) => {
       expiresIn: "5m",
     })
 
-    const resetLink = `http://localhost:5173/reset-password/update?id=${admin.id}&token=${token}`
+    const resetLink = `https://manwhaki-admin.netlify.app/reset-password/update?id=${admin.id}&token=${token}`
 
     const transporter = nodemailer.createTransport({
       service: "Gmail",

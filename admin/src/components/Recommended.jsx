@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Button, Card, CardBody, CardHeader, Spinner, Typography } from '@material-tailwind/react'
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid"
-import api from '../lib/api'
+import useApi from '../hooks/useApi'
 
 const Recommended = () => {
   const [recommendManga, setRecommendedManga] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const api = useApi()
 
 
   useEffect(() => {
@@ -31,6 +32,7 @@ const Recommended = () => {
     }
 
     getRecommendManga()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 
@@ -49,6 +51,7 @@ const Recommended = () => {
               color="white"
               size="sm"
               className="!absolute top-3 right-3"
+              // eslint-disable-next-line no-undef
               onClick={() => setOpen(false)}
             >
               Close
@@ -91,7 +94,7 @@ const Recommended = () => {
                   <CardBody className="p-4">
                     <Typography variant="h5" color="blue-gray" className="mb-2 text-base">
                       {manga.title.length > 28 ? 
-                        `${manga.title.slice(0, 28)}${manga.title.length > 28 ? "..." : ""}` 
+                        `${manga.title.slice(0, 28)}${manga.title.length > 20 ? "..." : ""}` 
                         : manga.title}
                     </Typography>
                   </CardBody>

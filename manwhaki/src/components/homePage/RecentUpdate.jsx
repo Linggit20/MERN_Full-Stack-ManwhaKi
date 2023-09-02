@@ -86,19 +86,25 @@ const RecentUpdate = () => {
   const navigate = useNavigate()
   const next = () => {
     if (hasNextPage) {
-      setPage((prevPage) => prevPage + 1)
+      const nextPage = parseInt(page) + 1
       const searchParams = new URLSearchParams(location.search)
-      searchParams.set("page", String(page + 1))
-      navigate({ search: searchParams.toString() })
+      searchParams.set("page", String(nextPage))
+      navigate(`?${searchParams.toString()}`)
     }
   }
 
   const prev = () => {
     if (page !== 1) {
-      setPage((prevPage) => prevPage - 1)
+      const prevPage = parseInt(page) - 1
       const searchParams = new URLSearchParams(location.search)
-      searchParams.set("page", String(page - 1))
-      navigate({ search: null })
+
+      if (prevPage === 1) {
+        searchParams.delete("page")
+      } else {
+        searchParams.set("page", String(prevPage))
+      }
+
+      navigate(`?${searchParams.toString()}`)
     }
   }
 

@@ -5,6 +5,7 @@ import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/so
 import { BsThreeDotsVertical } from "react-icons/bs"
 import ChapterForm from "./ChapterForm"
 import useApi from "../hooks/useApi"
+import DomainChange from "./DomainChange"
 
 
 const AllChapter = () => {
@@ -291,6 +292,7 @@ const AllChapter = () => {
               </Typography>
             </CardBody>
           </Card>
+          <DomainChange selectedManga={selectedManga} getMangaChapters={getMangaChapters}/>
           <Card>
             <CardBody>
               <ul className={`${isLoading ? "flex justify-center" : "sm:grid sm:grid-cols-2 sm:gap-4 max-h-[580px] overflow-y-scroll pr-4" }`}>

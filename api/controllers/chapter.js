@@ -20,8 +20,8 @@ export const uploadChapter = async (req, res) => {
       shortTitle,
       chapterNum,
       chapterNav,
-    });
-    if (existingChapter) return res.status(409).json({ error: "Chapter already exists" });
+    })
+    if (existingChapter) return res.status(409).json({ error: "Chapter already exists" })
 
     const newChapter = new Chapter({
       manga: mangaId,
@@ -61,6 +61,40 @@ export const updateChapter = async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 }
+
+// Update domains in content URLs for all chapters
+export const updateContentURLs = async (req, res) => {
+  try {
+    const { id: mangaId } = req.params
+    const { oldDomain, newDomain } = req.body
+
+    if (!oldDomain || !newDomain) {
+      return res.status(400).json({ error: "Both oldDomain and newDomain are required in the request body" })
+    }
+
+    const manga = await Manga.findById(mangaId)
+    if (!manga) return res.status(404).json({ error: "Manga not found" })
+
+    const chapters = await Chapter.find({ manga: mangaId })
+
+    const updateURL = (url) => {
+      return url.replace(new RegExp(oldDomain, 'g'), newDomain)
+    }
+
+    for (const chapter of chapters) {
+      chapter.contentURL = chapter.contentURL.map(updateURL)
+
+      await chapter.save()
+    }
+
+
+    res.status(200).json({ message: "Content URLs updated successfully" })
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: "Something went wrong" })
+  }
+}
+
 
 
 //  Delete a chapter
